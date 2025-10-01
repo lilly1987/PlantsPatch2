@@ -17,10 +17,9 @@ namespace Lilly.PlantsPatch2
         static Startup()
         {
             MyLog.Message($"ST");
-
-            Patch.TreeBackup();//            
+                   
             Settings.TreeSetup();
-            Patch.TreePatch();// 
+            Settings.TreePatch();// 
 
             MyLog.Message($"ED");
         }
