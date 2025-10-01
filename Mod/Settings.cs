@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using Verse;
@@ -11,12 +12,10 @@ namespace Lilly.PlantsPatch2
         //public static bool onPatch = true;
         //public static int maxFishPopulation = 1000000;
 
-        public static Dictionary<string, MyPlant> treeSetup = new Dictionary<string, MyPlant>();
-        private List<TreeSetupEntry> treeSetupList = new List<TreeSetupEntry>();
-
-
         public static Dictionary<string, MyPlant> treeBackup = new Dictionary<string, MyPlant>();
+        public static Dictionary<string, MyPlant> treeSetup = new Dictionary<string, MyPlant>();
         public static Dictionary<string, string> names = new Dictionary<string, string>();
+        private List<TreeSetupEntry> treeSetupList = new List<TreeSetupEntry>();
 
 
         /// <summary>
@@ -28,22 +27,22 @@ namespace Lilly.PlantsPatch2
             {
                 if (def.plant != null && def.plant.IsTree)
                 {
-                    MyPlant value = new MyPlant(def.plant);
+                    MyPlant value = new MyPlant(def);
                     treeBackup.Add(def.defName, value);                    
                     
                     ThingDef tdef = DefDatabase<ThingDef>.GetNamed(def.defName);
                     names.Add(tdef.defName, tdef.label.CapitalizeFirst());
                     
                     if (treeSetup.TryGetValue(def.defName, out var myPlant))
-                    {
-                        myPlant.plantProperties = def.plant;
+                    {                        
+                        myPlant.From(def);
                     }
                     else
                     {
                         treeSetup.Add(def.defName, new MyPlant(value));
                     }
-                    
-                    MyLog.Message($"TreeBackup/{def.defName}/{tdef.label.CapitalizeFirst()}", Settings.onDebug);
+
+                    MyLog.Message($"TreeBackup/{def.defName}/{tdef.label.CapitalizeFirst()}/{treeBackup[def.defName][PlantEnum.harvestYield]}/{treeSetup[def.defName][PlantEnum.harvestYield]}", Settings.onDebug);
                 }
             }
             MyLog.Message($"treeBackup/{treeBackup.Count}");
@@ -118,6 +117,18 @@ namespace Lilly.PlantsPatch2
                 if (treeSetup.TryGetValue(entry.Key,out var myPlant))
                 {
                     myPlant[plantEnum] = entry.Value[plantEnum];            
+                }
+            }
+        }
+
+        public static void TreeReset()
+        {
+            foreach (KeyValuePair<string, MyPlant> entry in treeBackup)
+            {
+                if (treeSetup.TryGetValue(entry.Key,out var myPlant))
+                {
+                    foreach (PlantEnum plantEnum in Enum.GetValues(typeof(PlantEnum)))
+                        myPlant[plantEnum] = entry.Value[plantEnum];            
                 }
             }
         }

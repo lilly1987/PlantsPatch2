@@ -1,6 +1,7 @@
 ﻿using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 using UnityEngine;
 using Verse;
@@ -51,6 +52,7 @@ namespace Lilly.PlantsPatch2
     {
         public Dictionary<PlantEnum, float> attributes = new Dictionary<PlantEnum, float>();
         public PlantProperties plantProperties =null;
+        public ThingDef def = null;
 
         public float this[PlantEnum kind]
         {
@@ -66,36 +68,76 @@ namespace Lilly.PlantsPatch2
         public MyPlant(MyPlant plant)  
         {
             this.plantProperties = plant.plantProperties;
-            foreach (var kv in plant.attributes)
+            this.def = plant.def;
+            foreach (KeyValuePair<PlantEnum, float> kv in plant.attributes)
             {    
                 this[kv.Key] = kv.Value;
             }
         }
 
         // PlantProperties 기반 생성자
-        public MyPlant(PlantProperties plant) 
+        public MyPlant(ThingDef def) 
         {
-            this.plantProperties = plant;
+            this.plantProperties = def.plant;
+            this.def = def;
             foreach (PlantEnum kind in Enum.GetValues(typeof(PlantEnum)))
             {
                 var field = typeof(PlantProperties).GetField(kind.ToString());
-                if (field == null) continue;
+                if (field == null)
+                {
+                    MyLog.Warning($"{def.label.CapitalizeFirst()} no {kind}");
+                    continue;
+                }
 
-                var value = field.GetValue(plant);
+                var value = field.GetValue(def.plant);
                 if (value is float f)
                 {
-                    this[kind] = f;
+                    this[kind] = f;                    
+                }
+                else
+                {
+                    MyLog.Warning($"{def.label.CapitalizeFirst()}/{kind} no float : {value}");
                 }
             }
 
         }
 
+        public void From(ThingDef def)
+        {
+            this.plantProperties = def.plant;
+            this.def = def;
+            foreach (PlantEnum kind in Enum.GetValues(typeof(PlantEnum)))
+            {
+                if (attributes.TryGetValue(kind,out var p))
+                {
+                    continue;
+                }
+                var field = typeof(PlantProperties).GetField(kind.ToString());
+                if (field == null)
+                {
+                    MyLog.Warning($"{def.label.CapitalizeFirst()} no {kind}");
+                    continue;
+                }
+
+                var value = field.GetValue(def.plant);
+                if (value is float f)
+                {
+                    this[kind] = f;
+                }
+                else
+                {
+                    MyLog.Warning($"{def.label.CapitalizeFirst()}/{kind} no float : {value}");
+                }
+            }
+        }
+
         public void ExposeData()
         {
-            foreach (var kv in attributes)
+            foreach (var kv in attributes.ToList())
             {
-                var v=this[kv.Key];
-                Scribe_Values.Look(ref v, kv.Key.ToString(), 1f);
+                var v= kv.Value;
+                Scribe_Values.Look(ref v, kv.Key.ToString());
+                MyLog.Message($"{kv.Key.ToString()}/{kv.Value}");
                 this[kv.Key] = v;
             }
         }

@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
+using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Runtime;
 using System.Text;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
 using static RimWorld.ColonistBar;
+using static Verse.Widgets;
 
 namespace Lilly.PlantsPatch2
 {
@@ -33,22 +36,24 @@ namespace Lilly.PlantsPatch2
 
         Vector2 scrollPosition;
         string tmp;
+        float viewHeight = 0f;
+
 
         // 버튼 정의: 텍스트와 multiplier (null은 기본값 적용)
-/*        (string label, float multiplier)[] buttons = new[]
-        {
-            ("reset", 1f),
-            ("x2", 2f),
-            ("x1.25", 1.25f),
-            ("x0.75", 0.75f),
-            ("x0.25", 0.25f),
+        /*        (string label, float multiplier)[] buttons = new[]
+                {
+                    ("reset", 1f),
+                    ("x2", 2f),
+                    ("x1.25", 1.25f),
+                    ("x0.75", 0.75f),
+                    ("x0.25", 0.25f),
 
-            ("reset", 1f),
-            ("x2", 2f),
-            ("x1.25", 1.25f),
-            ("x0.75", 0.75f),
-            ("x0.25", 0.25f),
-        };*/
+                    ("reset", 1f),
+                    ("x2", 2f),
+                    ("x1.25", 1.25f),
+                    ("x0.75", 0.75f),
+                    ("x0.25", 0.25f),
+                };*/
         (float multiplier,string v1,string v2)[] buttons2 = new []
         {
             (2f,"x2","/2"),
@@ -58,10 +63,30 @@ namespace Lilly.PlantsPatch2
             //(11f,"x2","/2")
         };
 
-        PlantEnum plantEnum = PlantEnum.harvestYield;
+        string[] buttons = Enum.GetNames(typeof(PlantEnum));
 
-        //float colWidtCnt = 5f;
-        //int cnt = 5;
+        static PlantEnum plantEnum = PlantEnum.harvestYield;
+
+        private static IEnumerable<Widgets.DropdownMenuElement<PlantEnum>> GeneratePageMenu(PlantEnum p)
+        {
+            return from PlantEnum page in Enum.GetValues(typeof(PlantEnum))
+                   where page != p
+                   select new Widgets.DropdownMenuElement<PlantEnum>
+                   {
+                       option = new FloatMenuOption(
+                           page.ToString().Translate(), 
+                           () =>
+                           {
+                               plantEnum = page;
+                               //scrollPosition = Vector2.zero;
+                           }
+                       )
+                       {
+                           tooltip =  null
+                       },
+                       payload = page,
+                   };
+        }
 
         // 매 프레임마다 호출됨
         public override void DoSettingsWindowContents(Rect inRect)
@@ -69,7 +94,7 @@ namespace Lilly.PlantsPatch2
             //MyLog.Message($"ST {Settings.treeSetup.Count}");
             base.DoSettingsWindowContents(inRect);
 
-            var rect = new Rect(0, 0, inRect.width - 16, 1000);
+            var rect = new Rect(0, 0, inRect.width - 16, viewHeight);
 
             Widgets.BeginScrollView(inRect, ref scrollPosition, rect);
 
@@ -86,12 +111,34 @@ namespace Lilly.PlantsPatch2
 
             listing.GapLine();
 
-            // whdfb rngus vlfdy
+            // --------------------
+
+            Rect rowRect = listing.GetRect(30f);
+            float colWidth = rowRect.width / buttons.Length;
+
+            
+            Widgets.Dropdown(
+                rowRect,
+                plantEnum,
+                b=> b,
+                GeneratePageMenu,
+                plantEnum.ToString().Translate()
+            );
+/*
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT * (i + 2), rowRect.y, colWidthT, rowRect.height), buttons2[i].v1))
+                {
+                    Settings.TreeApply(plantEnum, buttons2[i].multiplier);
+                }
+            }*/
+
+            // --------------------
 
             listing.GapLine();
 
             // === 일괄 적용 ===
-            Rect rowRect = listing.GetRect(30f);
+            rowRect = listing.GetRect(30f);
             float colWidth2 = rowRect.width / 2;
             float colWidthT = rowRect.width / (buttons2.Length*2 + 2);
 
@@ -103,6 +150,7 @@ namespace Lilly.PlantsPatch2
             }
 
             // 버튼 출력
+/*            
             for (int i = 0; i < buttons2.Length; i++)
             {
                 if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT * (i+2), rowRect.y, colWidthT, rowRect.height), buttons2[i].v1))
@@ -110,6 +158,16 @@ namespace Lilly.PlantsPatch2
                     Settings.TreeApply(plantEnum,buttons2[i].multiplier);
                 }
             }
+*/
+            for (int i = buttons2.Length - 1; i >= 0; i--)
+            {
+                int reverseIndex = buttons2.Length - 1 - i;
+                if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT * (reverseIndex + 2), rowRect.y, colWidthT, rowRect.height), buttons2[i].v1))
+                {
+                    Settings.TreeApply(plantEnum, buttons2[i].multiplier);
+                }
+            }
+
             for (int i = 0; i < buttons2.Length; i++)
             {
                 if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT *(buttons2.Length+i + 2), rowRect.y, colWidthT, rowRect.height), buttons2[i].v2))
@@ -130,7 +188,7 @@ namespace Lilly.PlantsPatch2
             //Widgets.Label(new Rect(rowRect.x + colWidth, rowRect.y, colWidth, rowRect.height), "성장일".Translate());
             //Widgets.Label(new Rect(rowRect.x + colWidth * 2, rowRect.y, colWidth, rowRect.height), "수급량".Translate());
 
-            listing.GapLine();
+            //listing.GapLine();
 
             // ---------
 
@@ -141,15 +199,23 @@ namespace Lilly.PlantsPatch2
             }
 
             // ---------
+            //listing.NewColumn();
+            listing.GapLine(24f);
 
-            listing.GapLine();
+            if (Widgets.ButtonText(listing.GetRect(30f), "reset All"))
+            {
+                Settings.TreeReset();
+            }
 
             listing.End();
+
+            viewHeight = listing.CurHeight;
 
             Widgets.EndScrollView();
 
             //MyLog.Message($"ED");
         }
+
 
         public override string SettingsCategory()
         {
