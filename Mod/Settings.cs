@@ -42,7 +42,7 @@ namespace Lilly.PlantsPatch2
                         treeSetup.Add(def.defName, new MyPlant(value));
                     }
 
-                    MyLog.Message($"TreeBackup/{def.defName}/{tdef.label.CapitalizeFirst()}/{treeBackup[def.defName][PlantEnum.harvestYield]}/{treeSetup[def.defName][PlantEnum.harvestYield]}", Settings.onDebug);
+                    //MyLog.Message($"TreeBackup/{def.defName}/{tdef.label.CapitalizeFirst()}/{treeBackup[def.defName][PlantEnum.harvestYield]}/{treeSetup[def.defName][PlantEnum.harvestYield]}", Settings.onDebug);
                 }
             }
             MyLog.Message($"treeBackup/{treeBackup.Count}");
@@ -58,13 +58,13 @@ namespace Lilly.PlantsPatch2
             {
                 if (def.plant != null && def.plant.IsTree)
                 {
-                    MyLog.Message($"DefDatabase/{def.label.CapitalizeFirst()}", Settings.onDebug);
+                    //MyLog.Message($"DefDatabase/{def.label.CapitalizeFirst()}", Settings.onDebug);
                     // 설정값 얻기
                     if (Settings.treeSetup.TryGetValue(def.defName, out MyPlant myPlant))
                     {
                         //myPlant.ApplyTo(def.plant);
                         myPlant.Apply();
-                        MyLog.Message($"TreePatch/{def.label.CapitalizeFirst()}", Settings.onDebug);
+                        //MyLog.Message($"TreePatch/{def.label.CapitalizeFirst()}", Settings.onDebug);
                     }
                 }
             }

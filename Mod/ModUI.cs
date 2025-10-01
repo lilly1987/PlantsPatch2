@@ -36,7 +36,7 @@ namespace Lilly.PlantsPatch2
 
         Vector2 scrollPosition;
         string tmp;
-        float viewHeight = 0f;
+        float viewHeight = 2000f;
 
 
         // 버튼 정의: 텍스트와 multiplier (null은 기본값 적용)
@@ -207,12 +207,12 @@ namespace Lilly.PlantsPatch2
                 Settings.TreeReset();
             }
 
-            listing.End();
-
             viewHeight = listing.CurHeight;
+
 
             Widgets.EndScrollView();
 
+            listing.End();
             //MyLog.Message($"ED");
         }
 

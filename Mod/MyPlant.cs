@@ -47,9 +47,12 @@ namespace Lilly.PlantsPatch2
         wildClusterWeight,// 군집 확률 0~1
     }
 
+
     public class MyPlant : IExposable
 
     {
+        private List<KindFloatPair> attributeList = new List<KindFloatPair>();
+
         public Dictionary<PlantEnum, float> attributes = new Dictionary<PlantEnum, float>();
         public PlantProperties plantProperties =null;
         public ThingDef def = null;
@@ -133,13 +136,31 @@ namespace Lilly.PlantsPatch2
 
         public void ExposeData()
         {
+/*
             foreach (var kv in attributes.ToList())
             {
-                var v= kv.Value;
+                var v = kv.Value;
                 Scribe_Values.Look(ref v, kv.Key.ToString());
-                MyLog.Message($"{kv.Key.ToString()}/{kv.Value}");
+                //MyLog.Message($"{kv.Key.ToString()}/{kv.Value}");
                 this[kv.Key] = v;
             }
+*/
+            if (Scribe.mode == LoadSaveMode.Saving)
+            {
+                attributeList.Clear();
+                foreach (var kv in attributes)
+                    attributeList.Add(new KindFloatPair(kv.Key, kv.Value));
+            }
+
+            Scribe_Collections.Look(ref attributeList, "attributeList", LookMode.Deep);
+
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
+            {
+                attributes.Clear();
+                foreach (var pair in attributeList)
+                    attributes[pair.kind] = pair.value;
+            }
+
         }
 
         public void ApplyTo(PlantProperties plant)

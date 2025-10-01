@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HarmonyX.cs" />
+    <Compile Include="KindFloatPair.cs" />
     <Compile Include="ModUI.cs" />
     <Compile Include="MyLog.cs" />
     <Compile Include="MyPlant.cs" />
