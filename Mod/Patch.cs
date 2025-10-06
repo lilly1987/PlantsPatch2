@@ -56,7 +56,7 @@ namespace Lilly.PlantsPatch2
         //[HarmonyPatch(typeof(PlayDataLoader), "DoPlayLoad")]
         //[HarmonyPostfix]
 
-        [HarmonyPatch(typeof(Plant), "Resting", MethodType.Getter)]
+        [HarmonyPatch(typeof(Plant), "get_Resting")]
         [HarmonyPrefix]
         public static bool Patch_Plant_Resting(ref bool __result)
         {

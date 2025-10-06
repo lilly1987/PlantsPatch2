@@ -29,6 +29,8 @@ namespace Lilly.PlantsPatch2
 
             //Patch.TreeBackup();//아직 로드 안됨
             //Settings.TreeSetup();//아직 로드 안됨
+
+            ModUI.plantSetup = Settings.plantSetup;
             settings = GetSettings<Settings>();// StaticConstructorOnStartup 보다 먼저 실행됨         
 
             MyLog.Message($"ED");
@@ -87,6 +89,7 @@ namespace Lilly.PlantsPatch2
                            {
                                plantEnum = page;
                                //scrollPosition = Vector2.zero;
+                               MyLog.Message($"{plantSetup.Count}");
                            }
                        )
                        {
@@ -95,6 +98,34 @@ namespace Lilly.PlantsPatch2
                        payload = page,
                    };
         }
+
+        private static IEnumerable<Widgets.DropdownMenuElement<PlantFilterType>> GeneratePageMenu2(PlantFilterType p)
+        {
+            return from PlantFilterType page in Enum.GetValues(typeof(PlantFilterType))
+                   where page != p
+                   select new Widgets.DropdownMenuElement<PlantFilterType>
+                   {
+                       option = new FloatMenuOption(
+                           page.ToString().Translate(), 
+                           () =>
+                           {
+                               selectedFilter = page;
+                               //scrollPosition = Vector2.zero;
+                               MyLog.Message($"{selectedFilter.ToString()}");
+                               plantSetup=GetFilteredPlants(selectedFilter);
+                               MyLog.Message($"{plantSetup.Count}");
+                           }
+                       )
+                       {
+                           tooltip =  null
+                       },
+                       payload = page,
+                   };
+        }
+
+        public static PlantFilterType selectedFilter = PlantFilterType.All;
+
+        public static Dictionary<string, MyPlant> plantSetup=new Dictionary<string, MyPlant>();
 
         // 매 프레임마다 호출됨
         public override void DoSettingsWindowContents(Rect inRect)
@@ -119,29 +150,24 @@ namespace Lilly.PlantsPatch2
 
             listing.GapLine();
 
-            // --------------------
-
             Rect rowRect = listing.GetRect(30f);
-            float colWidth = rowRect.width / buttons.Length;
+            float colWidth = rowRect.width /2;
 
-            
             Widgets.Dropdown(
-                rowRect,
+                new Rect(rowRect.x, rowRect.y, colWidth, rowRect.height),
+                selectedFilter,
+                b=> b,
+                GeneratePageMenu2,
+                selectedFilter.ToString().Translate()
+            );
+
+            Widgets.Dropdown(
+                new Rect(rowRect.x+ colWidth, rowRect.y, colWidth, rowRect.height),
                 plantEnum,
                 b=> b,
                 GeneratePageMenu,
                 plantEnum.ToString().Translate()
             );
-/*
-            for (int i = 0; i < buttons.Length; i++)
-            {
-                if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT * (i + 2), rowRect.y, colWidthT, rowRect.height), buttons2[i].v1))
-                {
-                    Settings.TreeApply(plantEnum, buttons2[i].multiplier);
-                }
-            }*/
-
-            // --------------------
 
             listing.GapLine();
 
@@ -154,25 +180,15 @@ namespace Lilly.PlantsPatch2
 
             if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT, rowRect.y, colWidthT, rowRect.height), "reset"))
             {
-                Settings.TreeReset(plantEnum);
+                Settings.TreeReset(plantEnum, plantSetup);
             }
 
-            // 버튼 출력
-/*            
-            for (int i = 0; i < buttons2.Length; i++)
-            {
-                if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT * (i+2), rowRect.y, colWidthT, rowRect.height), buttons2[i].v1))
-                {
-                    Settings.TreeApply(plantEnum,buttons2[i].multiplier);
-                }
-            }
-*/
             for (int i = buttons2.Length - 1; i >= 0; i--)
             {
                 int reverseIndex = buttons2.Length - 1 - i;
                 if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT * (reverseIndex + 2), rowRect.y, colWidthT, rowRect.height), buttons2[i].v1))
                 {
-                    Settings.TreeApply(plantEnum, buttons2[i].multiplier);
+                    Settings.TreeApply(plantEnum, plantSetup, buttons2[i].multiplier);
                 }
             }
 
@@ -180,7 +196,7 @@ namespace Lilly.PlantsPatch2
             {
                 if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT *(buttons2.Length+i + 2), rowRect.y, colWidthT, rowRect.height), buttons2[i].v2))
                 {
-                    Settings.TreeApply(plantEnum,1f/buttons2[i].multiplier);
+                    Settings.TreeApply(plantEnum, plantSetup, 1f /buttons2[i].multiplier);
                 }
             }
 
@@ -188,7 +204,7 @@ namespace Lilly.PlantsPatch2
             
             if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT, rowRect.y, colWidthT, rowRect.height), "set 0"))
             {
-                Settings.TreeApply(plantEnum, 0f);
+                Settings.TreeApply(plantEnum, plantSetup, 0f);
             }
 
             for (int i = buttons3.Length - 1; i >= 0; i--)
@@ -196,7 +212,7 @@ namespace Lilly.PlantsPatch2
                 int reverseIndex = buttons3.Length - 1 - i;
                 if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT * (reverseIndex + 2), rowRect.y, colWidthT, rowRect.height), buttons3[i].v1))
                 {
-                    Settings.TreeApply(plantEnum,null, buttons3[i].multiplier);
+                    Settings.TreeApply(plantEnum, plantSetup, null, buttons3[i].multiplier);
                 }
             }
 
@@ -204,7 +220,7 @@ namespace Lilly.PlantsPatch2
             {
                 if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT * (buttons3.Length + i + 2), rowRect.y, colWidthT, rowRect.height), buttons3[i].v2))
                 {
-                    Settings.TreeApply(plantEnum, null, - buttons3[i].multiplier);
+                    Settings.TreeApply(plantEnum, plantSetup, null, - buttons3[i].multiplier);
                 }
             }
 
@@ -212,32 +228,19 @@ namespace Lilly.PlantsPatch2
 
             listing.GapLine();
 
-            // 한 줄 높이의 Rect 확보
-            //rowRect = listing.GetRect(30f);
-
-            // 열 너비 계산 (3등분)
-
-            //Widgets.Label(new Rect(rowRect.x, rowRect.y, colWidth, rowRect.height), "이름".Translate());
-            //Widgets.Label(new Rect(rowRect.x + colWidth, rowRect.y, colWidth, rowRect.height), "성장일".Translate());
-            //Widgets.Label(new Rect(rowRect.x + colWidth * 2, rowRect.y, colWidth, rowRect.height), "수급량".Translate());
-
-            //listing.GapLine();
-
             // ---------
-
             
-            foreach (KeyValuePair<string, MyPlant> item in Settings.plantSetup)
+            foreach (KeyValuePair<string, MyPlant> item in plantSetup)
             {
                 TextFieldNumeric(listing, item, colWidth2, colWidthT);
             }
 
             // ---------
-            //listing.NewColumn();
             listing.GapLine(24f);
 
             if (Widgets.ButtonText(listing.GetRect(30f), "reset All"))
             {
-                Settings.TreeReset();
+                Settings.TreeResetAll();
             }
 
             viewHeight = listing.CurHeight;
@@ -246,7 +249,6 @@ namespace Lilly.PlantsPatch2
             Widgets.EndScrollView();
 
             listing.End();
-            //MyLog.Message($"ED");
         }
 
 
@@ -280,7 +282,7 @@ namespace Lilly.PlantsPatch2
             // 리셋 부분
             if (Widgets.ButtonText(new Rect(rowRect.x + colWidth, rowRect.y, colWidthR, rowRect.height), "reset"))
             {
-                Settings.plantSetup[num.Key][plantEnum] = Settings.plantBackup[num.Key][plantEnum];
+                plantSetup[num.Key][plantEnum] = Settings.plantBackup[num.Key][plantEnum];
             }
             
             // 입력 부분
@@ -300,6 +302,24 @@ namespace Lilly.PlantsPatch2
             listing.Label(label.Translate(), tipSignal: tipSignal.Translate());
             tmp = num.ToString();
             listing.TextFieldNumeric<T>(ref num, ref tmp);
+        }
+
+        public static Dictionary<string, MyPlant> GetFilteredPlants(PlantFilterType filter)
+        {
+            switch (filter)
+            {
+                case PlantFilterType.TreeOnly:
+                    return Settings.fillterTrees;
+                case PlantFilterType.GroundOnly:
+                    return Settings.fillterGrounds;
+                case PlantFilterType.TreeAndGround:
+                    return Settings.fillterAll;
+                case PlantFilterType.Neither:
+                    return Settings.fillterNoAll;
+                case PlantFilterType.All:
+                default:
+                    return Settings.plantSetup;
+            }
         }
     }
 }

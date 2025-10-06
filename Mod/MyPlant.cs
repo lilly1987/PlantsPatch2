@@ -17,6 +17,9 @@ namespace Lilly.PlantsPatch2
         public PlantProperties plantProperties =null;
         public ThingDef def = null;
 
+        public bool isGround = false;
+        public bool isTree = false;
+
         public float this[PlantEnum kind]
         {
             get => attributes.ContainsKey(kind) ? attributes[kind] : 0;
@@ -43,6 +46,8 @@ namespace Lilly.PlantsPatch2
         {
             this.plantProperties = def.plant;
             this.def = def;
+            isTree = def.plant.IsTree;
+            isGround = def.plant.sowTags.Contains("Ground");
             foreach (PlantEnum kind in Enum.GetValues(typeof(PlantEnum)))
             {
                 var field = typeof(PlantProperties).GetField(kind.ToString());
@@ -69,6 +74,8 @@ namespace Lilly.PlantsPatch2
         {
             this.plantProperties = def.plant;
             this.def = def;
+            isTree = def.plant.IsTree;
+            isGround = def.plant.sowTags.Contains("Ground");
             foreach (PlantEnum kind in Enum.GetValues(typeof(PlantEnum)))
             {
                 if (attributes.TryGetValue(kind,out var p))

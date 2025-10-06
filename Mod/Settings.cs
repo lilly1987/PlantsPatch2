@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -18,6 +19,11 @@ namespace Lilly.PlantsPatch2
         private List<TreeSetupEntry> plantSetupList = new List<TreeSetupEntry>();
 
 
+        public static Dictionary<string, MyPlant> fillterGrounds = new Dictionary<string, MyPlant>();
+        public static Dictionary<string, MyPlant> fillterTrees = new Dictionary<string, MyPlant>();
+        public static Dictionary<string, MyPlant> fillterAll = new Dictionary<string, MyPlant>();
+        public static Dictionary<string, MyPlant> fillterNoAll = new Dictionary<string, MyPlant>();
+
         /// <summary>
         /// 목록 
         /// </summary>
@@ -25,12 +31,13 @@ namespace Lilly.PlantsPatch2
         {
             foreach (var def in DefDatabase<ThingDef>.AllDefs)
             {
-                //if (def.plant != null && def.plant.IsTree)
+                //if (def.plant != null && def.plant.IsTree) // def.plant.sowTags.Contains("Ground")
                 if (def.plant != null )
                 {
                     MyPlant value = new MyPlant(def);
-                    plantBackup.Add(def.defName, value);                    
-                    
+                    plantBackup.Add(def.defName, value);
+
+
                     ThingDef tdef = DefDatabase<ThingDef>.GetNamed(def.defName);
                     names.Add(tdef.defName, tdef.label.CapitalizeFirst());
                     
@@ -48,14 +55,32 @@ namespace Lilly.PlantsPatch2
             }
             MyLog.Message($"treeBackup/{plantBackup.Count}");
             MyLog.Message($"TreeSetup/{plantSetup.Count}");
-            foreach (var key in plantSetup.Keys.ToList())
+
+            var keysToRemove = new List<string>();
+            foreach (var (key,value) in plantSetup)
             {
                 if (!plantBackup.ContainsKey(key))
                 {
-                    plantSetup.Remove(key);
+                    keysToRemove.Add(key);
+                }
+                else
+                {
+                    //MyPlant value = kv.Value;
+                    if (value.isTree) Settings.fillterTrees.Add(value.def.defName, value);
+                    if (value.isGround) Settings.fillterGrounds.Add(value.def.defName, value);
+                    if (value.isTree && value.isGround) Settings.fillterAll.Add(value.def.defName, value);
+                    if (!value.isTree && !value.isGround) Settings.fillterNoAll.Add(value.def.defName, value);
                 }
             }
+            foreach (var key in keysToRemove)
+            {
+                plantSetup.Remove(key);
+            }
             MyLog.Message($"TreeSetup/{plantSetup.Count}");
+            MyLog.Message($"fillterTrees/{fillterTrees.Count}");
+            MyLog.Message($"fillterGrounds/{fillterGrounds.Count}");
+            MyLog.Message($"fillterAll/{fillterAll.Count}");
+            MyLog.Message($"fillterNoAll/{fillterNoAll.Count}");
         }
 
         /// <summary>
@@ -111,7 +136,7 @@ namespace Lilly.PlantsPatch2
             Patch.OnPatch(true);
         }
 
-        public static void TreeApply(PlantEnum plantEnum ,float? multiplier=null,float? adder = null)
+        public static void TreeApply(PlantEnum plantEnum, Dictionary<string, MyPlant> plantSetup, float? multiplier=null,float? adder = null)
         {
             if(multiplier!=null)
                 foreach (KeyValuePair<string, MyPlant> entry in plantSetup)
@@ -125,7 +150,7 @@ namespace Lilly.PlantsPatch2
                 }
         }
 
-        public static void TreeReset(PlantEnum plantEnum)
+        public static void TreeReset(PlantEnum plantEnum, Dictionary<string, MyPlant> plantSetup)
         {
             foreach (KeyValuePair<string, MyPlant> entry in plantBackup)
             {
@@ -136,7 +161,7 @@ namespace Lilly.PlantsPatch2
             }
         }
 
-        public static void TreeReset()
+        public static void TreeResetAll()
         {
             foreach (KeyValuePair<string, MyPlant> entry in plantBackup)
             {

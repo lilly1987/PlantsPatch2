@@ -61,7 +61,7 @@ namespace Lilly
                     continue;
                 }
 
-                MyLog.Message($"패치 대상 : <color=#00FF00FF>{targetType.Name}</color>.<color=#FF8000FF>{targetMethodName}</color> <- <color=#00FF00FF>{method.DeclaringType.Name}</color>.<color=#FF8000FF>{method.Name}</color>");
+                //MyLog.Message($"패치 대상 : <color=#00FF00FF>{targetType.Name}</color>.<color=#FF8000FF>{targetMethodName}</color> <- <color=#00FF00FF>{method.DeclaringType.Name}</color>.<color=#FF8000FF>{method.Name}</color>");
                 try
                 {
                     var to = new HarmonyMethod(method);
