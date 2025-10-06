@@ -30,15 +30,15 @@ namespace Lilly.PlantsPatch2
             //Patch.TreeBackup();//아직 로드 안됨
             //Settings.TreeSetup();//아직 로드 안됨
 
-            ModUI.plantSetup = Settings.plantSetup;
             settings = GetSettings<Settings>();// StaticConstructorOnStartup 보다 먼저 실행됨         
+            ModUI.plantSetup = Settings.plantSetup;
 
             MyLog.Message($"ED");
         }
 
         Vector2 scrollPosition;
         string tmp;
-        float viewHeight = 2000f;
+        float viewHeight = 3000f;
 
 
         // 버튼 정의: 텍스트와 multiplier (null은 기본값 적용)
@@ -89,7 +89,7 @@ namespace Lilly.PlantsPatch2
                            {
                                plantEnum = page;
                                //scrollPosition = Vector2.zero;
-                               MyLog.Message($"{plantSetup.Count}");
+                               //MyLog.Message($"{plantSetup.Count}");
                            }
                        )
                        {
@@ -106,14 +106,14 @@ namespace Lilly.PlantsPatch2
                    select new Widgets.DropdownMenuElement<PlantFilterType>
                    {
                        option = new FloatMenuOption(
-                           page.ToString().Translate(), 
+                           $"{page.ToString().Translate()} / {GetFilteredPlants(page).Count}", 
                            () =>
                            {
                                selectedFilter = page;
                                //scrollPosition = Vector2.zero;
-                               MyLog.Message($"{selectedFilter.ToString()}");
+                               //MyLog.Message($"{selectedFilter.ToString()}");
                                plantSetup=GetFilteredPlants(selectedFilter);
-                               MyLog.Message($"{plantSetup.Count}");
+                               //MyLog.Message($"{plantSetup.Count}");
                            }
                        )
                        {
@@ -132,7 +132,7 @@ namespace Lilly.PlantsPatch2
         {
             //MyLog.Message($"ST {Settings.treeSetup.Count}");
             base.DoSettingsWindowContents(inRect);
-
+            float h = 0f;
             var rect = new Rect(0, 0, inRect.width - 16, viewHeight);
 
             Widgets.BeginScrollView(inRect, ref scrollPosition, rect);
@@ -142,23 +142,26 @@ namespace Lilly.PlantsPatch2
             listing.Begin(rect);
 
             listing.GapLine();
-
+            h += 12;
             // ---------
 
             listing.CheckboxLabeled($"Debug", ref Settings.onDebug);
             listing.CheckboxLabeled($"PlantRestingAndSchedulePatch".Translate(), ref Settings.onPatch, "PlantRestingAndSchedulePatchDec".Translate());
+            h += 60;
 
             listing.GapLine();
+            h += 12;
 
             Rect rowRect = listing.GetRect(30f);
             float colWidth = rowRect.width /2;
+            h += 30;
 
             Widgets.Dropdown(
                 new Rect(rowRect.x, rowRect.y, colWidth, rowRect.height),
                 selectedFilter,
                 b=> b,
                 GeneratePageMenu2,
-                selectedFilter.ToString().Translate()
+                $"{selectedFilter.ToString().Translate()} / {plantSetup.Count}"                
             );
 
             Widgets.Dropdown(
@@ -168,11 +171,12 @@ namespace Lilly.PlantsPatch2
                 GeneratePageMenu,
                 plantEnum.ToString().Translate()
             );
-
+            h += 60;
             listing.GapLine();
-
+            h += 12;
             // === 일괄 적용 ===
             rowRect = listing.GetRect(30f);
+            h += 30;
             float colWidth2 = rowRect.width / 2;
             float colWidthT = rowRect.width / (buttons2.Length*2 + 2);
 
@@ -200,8 +204,8 @@ namespace Lilly.PlantsPatch2
                 }
             }
 
-            rowRect = listing.GetRect(30f); 
-            
+            rowRect = listing.GetRect(30f);
+            h += 30;
             if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT, rowRect.y, colWidthT, rowRect.height), "set 0"))
             {
                 Settings.TreeApply(plantEnum, plantSetup, 0f);
@@ -227,14 +231,15 @@ namespace Lilly.PlantsPatch2
             // === 일괄 적용 ===
 
             listing.GapLine();
-
+            h += 12;
             // ---------
-            
+
             foreach (KeyValuePair<string, MyPlant> item in plantSetup)
             {
+                //MyLog.Message($"{item.Key}");
                 TextFieldNumeric(listing, item, colWidth2, colWidthT);
             }
-
+            h += plantSetup.Count*30f;
             // ---------
             listing.GapLine(24f);
 
@@ -242,9 +247,10 @@ namespace Lilly.PlantsPatch2
             {
                 Settings.TreeResetAll();
             }
-
-            viewHeight = listing.CurHeight;
-
+            h += 30;
+            //viewHeight = listing.CurHeight;
+            viewHeight = h;
+            //MyLog.Message($"{listing.CurHeight} / {h}");
 
             Widgets.EndScrollView();
 

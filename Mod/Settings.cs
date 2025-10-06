@@ -81,6 +81,7 @@ namespace Lilly.PlantsPatch2
             MyLog.Message($"fillterGrounds/{fillterGrounds.Count}");
             MyLog.Message($"fillterAll/{fillterAll.Count}");
             MyLog.Message($"fillterNoAll/{fillterNoAll.Count}");
+            ModUI.plantSetup = Settings.plantSetup;
         }
 
         /// <summary>
@@ -133,7 +134,7 @@ namespace Lilly.PlantsPatch2
                 MyLog.Message($"treeSetup/{plantSetup.Count}");
                 TreePatch();
             }
-            Patch.OnPatch(true);
+            Patch.OnPatch();
         }
 
         public static void TreeApply(PlantEnum plantEnum, Dictionary<string, MyPlant> plantSetup, float? multiplier=null,float? adder = null)
