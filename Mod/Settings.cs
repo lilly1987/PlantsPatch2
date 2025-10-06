@@ -9,13 +9,13 @@ namespace Lilly.PlantsPatch2
     public class Settings : ModSettings
     {
         public static bool onDebug = true;
-        //public static bool onPatch = true;
+        public static bool onPatch = true;
         //public static int maxFishPopulation = 1000000;
 
-        public static Dictionary<string, MyPlant> treeBackup = new Dictionary<string, MyPlant>();
-        public static Dictionary<string, MyPlant> treeSetup = new Dictionary<string, MyPlant>();
+        public static Dictionary<string, MyPlant> plantBackup = new Dictionary<string, MyPlant>();
+        public static Dictionary<string, MyPlant> plantSetup = new Dictionary<string, MyPlant>();
         public static Dictionary<string, string> names = new Dictionary<string, string>();
-        private List<TreeSetupEntry> treeSetupList = new List<TreeSetupEntry>();
+        private List<TreeSetupEntry> plantSetupList = new List<TreeSetupEntry>();
 
 
         /// <summary>
@@ -25,36 +25,37 @@ namespace Lilly.PlantsPatch2
         {
             foreach (var def in DefDatabase<ThingDef>.AllDefs)
             {
-                if (def.plant != null && def.plant.IsTree)
+                //if (def.plant != null && def.plant.IsTree)
+                if (def.plant != null )
                 {
                     MyPlant value = new MyPlant(def);
-                    treeBackup.Add(def.defName, value);                    
+                    plantBackup.Add(def.defName, value);                    
                     
                     ThingDef tdef = DefDatabase<ThingDef>.GetNamed(def.defName);
                     names.Add(tdef.defName, tdef.label.CapitalizeFirst());
                     
-                    if (treeSetup.TryGetValue(def.defName, out var myPlant))
+                    if (plantSetup.TryGetValue(def.defName, out var myPlant))
                     {                        
                         myPlant.From(def);
                     }
                     else
                     {
-                        treeSetup.Add(def.defName, new MyPlant(value));
+                        plantSetup.Add(def.defName, new MyPlant(value));
                     }
 
                     //MyLog.Message($"TreeBackup/{def.defName}/{tdef.label.CapitalizeFirst()}/{treeBackup[def.defName][PlantEnum.harvestYield]}/{treeSetup[def.defName][PlantEnum.harvestYield]}", Settings.onDebug);
                 }
             }
-            MyLog.Message($"treeBackup/{treeBackup.Count}");
-            MyLog.Message($"TreeSetup/{treeSetup.Count}");
-            foreach (var key in treeSetup.Keys.ToList())
+            MyLog.Message($"treeBackup/{plantBackup.Count}");
+            MyLog.Message($"TreeSetup/{plantSetup.Count}");
+            foreach (var key in plantSetup.Keys.ToList())
             {
-                if (!treeBackup.ContainsKey(key))
+                if (!plantBackup.ContainsKey(key))
                 {
-                    treeSetup.Remove(key);
+                    plantSetup.Remove(key);
                 }
             }
-            MyLog.Message($"TreeSetup/{treeSetup.Count}");
+            MyLog.Message($"TreeSetup/{plantSetup.Count}");
         }
 
         /// <summary>
@@ -68,7 +69,7 @@ namespace Lilly.PlantsPatch2
                 {
                     //MyLog.Message($"DefDatabase/{def.label.CapitalizeFirst()}", Settings.onDebug);
                     // 설정값 얻기
-                    if (Settings.treeSetup.TryGetValue(def.defName, out MyPlant myPlant))
+                    if (Settings.plantSetup.TryGetValue(def.defName, out MyPlant myPlant))
                     {
                         //myPlant.ApplyTo(def.plant);
                         myPlant.Apply();
@@ -89,36 +90,36 @@ namespace Lilly.PlantsPatch2
             base.ExposeData();
 
             Scribe_Values.Look(ref onDebug, "onDebug", false);
-            //Scribe_Values.Look(ref onPatch, "onPatch", true);
+            Scribe_Values.Look(ref onPatch, "onPatch", true);
 
             //Scribe_Values.Look<Dictionary<string, MyPlant>>(ref treeSetup, "treeSetup");
             if (Scribe.mode == LoadSaveMode.Saving)
             {
-                MyLog.Message($"treeSetup/{treeSetup.Count}");
-                treeSetupList= treeSetup.Select(kv => new TreeSetupEntry() { defName = kv.Key, plant = kv.Value }).ToList();
-                MyLog.Message($"treeSetupList/{treeSetupList.Count}");
+                MyLog.Message($"treeSetup/{plantSetup.Count}");
+                plantSetupList= plantSetup.Select(kv => new TreeSetupEntry() { defName = kv.Key, plant = kv.Value }).ToList();
+                MyLog.Message($"treeSetupList/{plantSetupList.Count}");
                 TreePatch();
             }
-            Scribe_Collections.Look(ref treeSetupList, "treeSetupList", LookMode.Deep);
+            Scribe_Collections.Look(ref plantSetupList, "treeSetupList", LookMode.Deep);
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
-                MyLog.Message($"treeSetupList/{treeSetupList.Count}");
-                treeSetup = treeSetupList.ToDictionary(entry => entry.defName, entry => entry.plant);
-                MyLog.Message($"treeSetup/{treeSetup.Count}");
+                MyLog.Message($"treeSetupList/{plantSetupList.Count}");
+                plantSetup = plantSetupList.ToDictionary(entry => entry.defName, entry => entry.plant);
+                MyLog.Message($"treeSetup/{plantSetup.Count}");
                 TreePatch();
             }
-
+            Patch.OnPatch(true);
         }
 
         public static void TreeApply(PlantEnum plantEnum ,float? multiplier=null,float? adder = null)
         {
             if(multiplier!=null)
-                foreach (KeyValuePair<string, MyPlant> entry in treeSetup)
+                foreach (KeyValuePair<string, MyPlant> entry in plantSetup)
                 {
                     entry.Value.Multiplier(plantEnum, multiplier.Value);
                 }
             if(adder != null)
-                foreach (KeyValuePair<string, MyPlant> entry in treeSetup)
+                foreach (KeyValuePair<string, MyPlant> entry in plantSetup)
                 {
                     entry.Value.Adder(plantEnum, adder.Value);
                 }
@@ -126,9 +127,9 @@ namespace Lilly.PlantsPatch2
 
         public static void TreeReset(PlantEnum plantEnum)
         {
-            foreach (KeyValuePair<string, MyPlant> entry in treeBackup)
+            foreach (KeyValuePair<string, MyPlant> entry in plantBackup)
             {
-                if (treeSetup.TryGetValue(entry.Key,out var myPlant))
+                if (plantSetup.TryGetValue(entry.Key,out var myPlant))
                 {
                     myPlant[plantEnum] = entry.Value[plantEnum];            
                 }
@@ -137,9 +138,9 @@ namespace Lilly.PlantsPatch2
 
         public static void TreeReset()
         {
-            foreach (KeyValuePair<string, MyPlant> entry in treeBackup)
+            foreach (KeyValuePair<string, MyPlant> entry in plantBackup)
             {
-                if (treeSetup.TryGetValue(entry.Key,out var myPlant))
+                if (plantSetup.TryGetValue(entry.Key,out var myPlant))
                 {
                     foreach (PlantEnum plantEnum in Enum.GetValues(typeof(PlantEnum)))
                         myPlant[plantEnum] = entry.Value[plantEnum];            

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,8 +20,8 @@ namespace Lilly.PlantsPatch2
     public static class Patch
     {
         public static HarmonyX harmony = null;
-        public static string harmonyId = "Lilly.";
-/*
+        public static string harmonyId = "Lilly.PlantsPatch2";
+
         public static void OnPatch(bool repatch = false)
         {
             if (repatch)
@@ -40,7 +41,7 @@ namespace Lilly.PlantsPatch2
                 MyLog.Error(e.ToString());
                 MyLog.Error($"Patch Fail");
             }
-            
+
         }
 
         public static void Unpatch()
@@ -50,13 +51,26 @@ namespace Lilly.PlantsPatch2
             harmony.UnpatchSelf();
             harmony = null;
         }
-*/
+
         // PlayDataLoader.DoPlayLoad() 메서드가 def 로딩 후 호출되므로 효과 없음
         //[HarmonyPatch(typeof(PlayDataLoader), "DoPlayLoad")]
         //[HarmonyPostfix]
 
+        [HarmonyPatch(typeof(Plant), "Resting", MethodType.Getter)]
+        [HarmonyPrefix]
+        public static bool Patch_Plant_Resting(ref bool __result)
+        {
+            __result = false;
+            return false;
+        }      
 
-
+        [HarmonyPatch(typeof(CompSchedule), "RecalculateAllowed")]
+        [HarmonyPrefix]
+        public static bool Patch_CompSchedule_RecalculateAllowed(CompSchedule __instance)
+        {
+            __instance.Allowed = true;
+            return false;
+        }      
 
     }
 }

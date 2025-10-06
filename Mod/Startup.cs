@@ -20,7 +20,7 @@ namespace Lilly.PlantsPatch2
                    
             Settings.TreeSetup();
             Settings.TreePatch();// 
-
+            Patch.OnPatch();
             MyLog.Message($"ED");
         }
     }

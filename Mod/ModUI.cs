@@ -115,7 +115,7 @@ namespace Lilly.PlantsPatch2
             // ---------
 
             listing.CheckboxLabeled($"Debug", ref Settings.onDebug);
-            //listing.CheckboxLabeled($"on Patch", ref Settings.onPatch);
+            listing.CheckboxLabeled($"PlantRestingAndSchedulePatch".Translate(), ref Settings.onPatch, "PlantRestingAndSchedulePatchDec".Translate());
 
             listing.GapLine();
 
@@ -226,7 +226,7 @@ namespace Lilly.PlantsPatch2
             // ---------
 
             
-            foreach (KeyValuePair<string, MyPlant> item in Settings.treeSetup)
+            foreach (KeyValuePair<string, MyPlant> item in Settings.plantSetup)
             {
                 TextFieldNumeric(listing, item, colWidth2, colWidthT);
             }
@@ -275,12 +275,12 @@ namespace Lilly.PlantsPatch2
             }
 
             //
-            Widgets.Label(new Rect(rowRect.x + colWidth- colWidthR, rowRect.y, colWidthR, rowRect.height), $"{Settings.treeBackup[num.Key][plantEnum]}");
+            Widgets.Label(new Rect(rowRect.x + colWidth- colWidthR, rowRect.y, colWidthR, rowRect.height), $"{Settings.plantBackup[num.Key][plantEnum]}");
 
             // 리셋 부분
             if (Widgets.ButtonText(new Rect(rowRect.x + colWidth, rowRect.y, colWidthR, rowRect.height), "reset"))
             {
-                Settings.treeSetup[num.Key][plantEnum] = Settings.treeBackup[num.Key][plantEnum];
+                Settings.plantSetup[num.Key][plantEnum] = Settings.plantBackup[num.Key][plantEnum];
             }
             
             // 입력 부분
