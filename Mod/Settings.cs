@@ -47,6 +47,14 @@ namespace Lilly.PlantsPatch2
             }
             MyLog.Message($"treeBackup/{treeBackup.Count}");
             MyLog.Message($"TreeSetup/{treeSetup.Count}");
+            foreach (var key in treeSetup.Keys.ToList())
+            {
+                if (!treeBackup.ContainsKey(key))
+                {
+                    treeSetup.Remove(key);
+                }
+            }
+            MyLog.Message($"TreeSetup/{treeSetup.Count}");
         }
 
         /// <summary>
@@ -102,12 +110,18 @@ namespace Lilly.PlantsPatch2
 
         }
 
-        public static void TreeApply(PlantEnum plantEnum ,float multiplier )
+        public static void TreeApply(PlantEnum plantEnum ,float? multiplier=null,float? adder = null)
         {
-            foreach (KeyValuePair<string, MyPlant> entry in treeSetup)
-            {
-                entry.Value.Multiplier(plantEnum, multiplier);
-            }
+            if(multiplier!=null)
+                foreach (KeyValuePair<string, MyPlant> entry in treeSetup)
+                {
+                    entry.Value.Multiplier(plantEnum, multiplier.Value);
+                }
+            if(adder != null)
+                foreach (KeyValuePair<string, MyPlant> entry in treeSetup)
+                {
+                    entry.Value.Adder(plantEnum, adder.Value);
+                }
         }
 
         public static void TreeReset(PlantEnum plantEnum)

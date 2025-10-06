@@ -62,6 +62,14 @@ namespace Lilly.PlantsPatch2
             (7f,"x7","/7"),
             //(11f,"x2","/2")
         };
+        (float multiplier,string v1,string v2)[] buttons3 = new []
+        {
+            (1f ,"+1","-1"),
+            (5f ,"+5","-5"),
+            (10f,"+10","-10"),
+            (50f,"+50","-50"),
+            //(11f,"x2","/2")
+        };
 
         string[] buttons = Enum.GetNames(typeof(PlantEnum));
 
@@ -175,6 +183,31 @@ namespace Lilly.PlantsPatch2
                     Settings.TreeApply(plantEnum,1f/buttons2[i].multiplier);
                 }
             }
+
+            rowRect = listing.GetRect(30f); 
+            
+            if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT, rowRect.y, colWidthT, rowRect.height), "set 0"))
+            {
+                Settings.TreeApply(plantEnum, 0f);
+            }
+
+            for (int i = buttons3.Length - 1; i >= 0; i--)
+            {
+                int reverseIndex = buttons3.Length - 1 - i;
+                if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT * (reverseIndex + 2), rowRect.y, colWidthT, rowRect.height), buttons3[i].v1))
+                {
+                    Settings.TreeApply(plantEnum,null, buttons3[i].multiplier);
+                }
+            }
+
+            for (int i = 0; i < buttons3.Length; i++)
+            {
+                if (Widgets.ButtonText(new Rect(rowRect.x + colWidthT * (buttons3.Length + i + 2), rowRect.y, colWidthT, rowRect.height), buttons3[i].v2))
+                {
+                    Settings.TreeApply(plantEnum, null, - buttons3[i].multiplier);
+                }
+            }
+
             // === 일괄 적용 ===
 
             listing.GapLine();
