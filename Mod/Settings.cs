@@ -89,9 +89,9 @@ namespace Lilly.PlantsPatch2
         /// </summary>
         public static void TreePatch()
         {
-            foreach (var def in DefDatabase<ThingDef>.AllDefs)
+       /*     foreach (var def in DefDatabase<ThingDef>.AllDefs)
             {
-                if (def.plant != null && def.plant.IsTree)
+                if (def.plant != null )
                 {
                     //MyLog.Message($"DefDatabase/{def.label.CapitalizeFirst()}", Settings.onDebug);
                     // 설정값 얻기
@@ -102,6 +102,10 @@ namespace Lilly.PlantsPatch2
                         //MyLog.Message($"TreePatch/{def.label.CapitalizeFirst()}", Settings.onDebug);
                     }
                 }
+            }*/
+            foreach (var (k,v) in Settings.plantSetup)
+            {
+                v.Apply();
             }
         }
 

@@ -22,9 +22,10 @@ namespace Lilly.PlantsPatch2
         public static HarmonyX harmony = null;
         public static string harmonyId = "Lilly.PlantsPatch2";
 
+
         public static void OnPatch(bool repatch = false)
         {
-            if (repatch)
+            if (repatch || !Settings.onPatch)
             {
                 Unpatch();
             }
@@ -41,7 +42,6 @@ namespace Lilly.PlantsPatch2
                 MyLog.Error(e.ToString());
                 MyLog.Error($"Patch Fail");
             }
-
         }
 
         public static void Unpatch()
